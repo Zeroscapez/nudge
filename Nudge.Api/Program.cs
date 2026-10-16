@@ -1,4 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Nudge.Api.Data;
+using Nudge.Api.Endpoints;
+using Nudge.Api.Services;
+
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<INudgeService, NudgeService>();
+builder.Services.AddDbContext<NudgeDbContext>(o => o.UseSqlite("Data Source=nudge.db")); // this is the connection string
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
@@ -6,8 +14,4 @@ app.MapGet("/", () => "Hello World!");
 app.Run();
 
 
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = "";
-}
+
