@@ -4,14 +4,14 @@ namespace Nudge.Api.Models;
 
 public class NudgeMessage
 {
-    int Id { get; set; }
-    int FromUserId { get; set; }
-    int ToUserId { get; set; }
+    public int Id { get; set; }
+    public int FromUserId { get; set; }
+    public int ToUserId { get; set; }
 
     [MaxLength(140)]
-    string? Message { get; set; }
+    public string? Message { get; set; }
 
-    DateTime SentAt { get; set; }
+    public DateTime SentAt { get; set; }
 
-    DateTime? ReadAt { get; set; }
+    public DateTime? ReadAt { get; set; }
 }

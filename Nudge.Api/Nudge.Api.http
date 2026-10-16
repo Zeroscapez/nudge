@@ -1,0 +1,37 @@
+@baseUrl = http://localhost:5173
+
+### Health check
+GET {{baseUrl}}/
+
+### Create a user
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "username": "zack",
+  "displayName": "Zack"
+}
+
+### Create a second user
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "username": "ana",
+  "displayName": "Ana"
+}
+
+### Get user 1
+GET {{baseUrl}}/users/1
+
+### Duplicate username (expect 400)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{ "username": "zack", "displayName": "Copy" }
+
+### Make 1 and 2 friends (expect 204)
+POST {{baseUrl}}/users/1/friends/2
+
+### List user 1's friends
+GET {{baseUrl}}/users/1/friends

@@ -1,4 +1,5 @@
 using Nudge.Api.Services;
+using Nudge.Api.Dtos;
 
 namespace Nudge.Api.Endpoints;
 
@@ -11,8 +12,8 @@ public static class UserEndpoints
         group.MapGet("/{id:int}", async (int id, IUserService users) =>
             await users.GetAsync(id) is { } user ? Results.Ok(user) : Results.NotFound());
 
-        group.MapPost("/", async (string name, IUserService users) =>
-            await users.CreateAsync(name) is { } user ? Results.Ok(user) : Results.BadRequest());
+        group.MapPost("/", async (CreateUserRequest request, IUserService users) =>
+            await users.CreateAsync(request) is { } user ? Results.Created($"/users/{user.Id}", user) : Results.BadRequest($"Username '{request.Username}' is already taken."));
         // TODO: group.MapPost("/", ...)                          create user
         // TODO: group.MapPost("/{id:int}/friends/{friendId:int}", ...)  add friend
         // TODO: group.MapGet("/{id:int}/friends", ...)            list friends

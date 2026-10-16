@@ -5,5 +5,5 @@ namespace Nudge.Api.Data;
 public class NudgeDbContext(DbContextOptions<NudgeDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
-    //public DbSet<Nudge> Nudges => Set<Nudge>();
+    public DbSet<NudgeMessage> Nudges => Set<NudgeMessage>();
 }
