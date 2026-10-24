@@ -1,37 +1,120 @@
+# Works with the VS Code "REST Client" extension and Visual Studio.
+# Run the requests top to bottom: the login requests save each user's token for the ones after them.
 @baseUrl = http://localhost:5173
 
 ### Health check
-GET {{baseUrl}}/
+GET {{baseUrl}}/api/health
 
-### Create a user
-POST {{baseUrl}}/users
+### Register Zack (expect 201; 409 if you run it twice)
+POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
-{
-  "username": "zack",
-  "displayName": "Zack"
-}
+{ "username": "zack", "displayName": "Zack", "password": "correct-horse" }
 
-### Create a second user
-POST {{baseUrl}}/users
+### Register Ana
+POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
-{
-  "username": "ana",
-  "displayName": "Ana"
-}
+{ "username": "ana", "displayName": "Ana", "password": "battery-staple" }
 
-### Get user 1
-GET {{baseUrl}}/users/1
-
-### Duplicate username (expect 400)
-POST {{baseUrl}}/users
+### Log in as Zack
+# @name zack
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
-{ "username": "zack", "displayName": "Copy" }
+{ "username": "zack", "password": "correct-horse" }
 
-### Make 1 and 2 friends (expect 204)
-POST {{baseUrl}}/users/1/friends/2
+### Log in as Ana
+# @name ana
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
 
-### List user 1's friends
-GET {{baseUrl}}/users/1/friends
+{ "username": "ana", "password": "battery-staple" }
+
+@zackToken = {{zack.response.body.$.token}}
+@anaToken = {{ana.response.body.$.token}}
+@anaId = {{ana.response.body.$.user.id}}
+
+### Wrong password (expect 401)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "zack", "password": "nope-nope" }
+
+### Who am I?
+GET {{baseUrl}}/api/me
+Authorization: Bearer {{zackToken}}
+
+### No token (expect 401)
+GET {{baseUrl}}/api/me
+
+### Mood presets
+GET {{baseUrl}}/api/moods/presets
+
+### Ana sets a custom mood
+PUT {{baseUrl}}/api/me/mood
+Authorization: Bearer {{anaToken}}
+Content-Type: application/json
+
+{ "emoji": "🎮", "text": "Grinding ranked" }
+
+### Zack sends Ana a friend request
+POST {{baseUrl}}/api/friends/requests
+Authorization: Bearer {{zackToken}}
+Content-Type: application/json
+
+{ "username": "ana" }
+
+### Ana sees it in "incoming"
+# @name anaRequests
+GET {{baseUrl}}/api/friends/requests
+Authorization: Bearer {{anaToken}}
+
+### Ana accepts (expect 204)
+POST {{baseUrl}}/api/friends/requests/{{anaRequests.response.body.$.incoming[0].id}}/accept
+Authorization: Bearer {{anaToken}}
+
+### Zack's friends, with their moods
+GET {{baseUrl}}/api/friends
+Authorization: Bearer {{zackToken}}
+
+### Zack nudges Ana with a note and two emojis (expect 201)
+POST {{baseUrl}}/api/nudges
+Authorization: Bearer {{zackToken}}
+Content-Type: application/json
+
+{ "toUserId": {{anaId}}, "note": "gg, call me after?", "emojis": "❤️🤗" }
+
+### Three emojis (expect 400)
+POST {{baseUrl}}/api/nudges
+Authorization: Bearer {{zackToken}}
+Content-Type: application/json
+
+{ "toUserId": {{anaId}}, "emojis": "❤️🤗🔥" }
+
+### Ana's inbox
+GET {{baseUrl}}/api/nudges/inbox
+Authorization: Bearer {{anaToken}}
+
+### Zack makes a private room with Ana
+# @name room
+POST {{baseUrl}}/api/rooms
+Authorization: Bearer {{zackToken}}
+Content-Type: application/json
+
+{ "name": "Duo", "memberIds": [{{anaId}}] }
+
+### Nudge the room
+POST {{baseUrl}}/api/nudges
+Authorization: Bearer {{zackToken}}
+Content-Type: application/json
+
+{ "roomId": {{room.response.body.$.id}}, "emojis": "👋" }
+
+### Room feed
+GET {{baseUrl}}/api/rooms/{{room.response.body.$.id}}/nudges
+Authorization: Bearer {{anaToken}}
+
+### Zack removes Ana as a friend (expect 204)
+DELETE {{baseUrl}}/api/friends/{{anaId}}
+Authorization: Bearer {{zackToken}}

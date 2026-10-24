@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#7c5cff">
+  <title>Nudge</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Logged-out view -->
+  <main id="auth-view" class="auth" hidden>
+    <h1 class="logo">Nudge <span aria-hidden="true">👋</span></h1>
+    <p class="muted">Tap your people. Let them know you're thinking of them.</p>
+
+    <form id="auth-form" class="card stack">
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab active" data-mode="login">Log in</button>
+        <button type="button" class="tab" data-mode="register">Sign up</button>
+      </div>
+      <label>Username <input name="username" autocomplete="username" required minlength="3" maxlength="20"></label>
+      <label data-register-only hidden>Display name <input name="displayName" maxlength="40"></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required minlength="8"></label>
+      <p id="auth-error" class="error" role="alert"></p>
+      <button type="submit" class="primary" id="auth-submit">Log in</button>
+    </form>
+  </main>
+
+  <!-- Logged-in view -->
+  <div id="app-view" hidden>
+    <header class="topbar">
+      <div class="me">
+        <button id="mood-button" class="mood-chip" title="Set your mood">
+          <span id="my-mood-emoji">🙂</span>
+          <span id="my-mood-text" class="muted">Set mood</span>
+        </button>
+        <strong id="my-name"></strong>
+      </div>
+      <div class="actions">
+        <button id="notify-button" class="ghost" title="Allow notifications">🔔 Allow alerts</button>
+        <button id="logout-button" class="ghost">Log out</button>
+      </div>
+    </header>
+
+    <nav class="tabs main-tabs" role="tablist">
+      <button class="tab active" data-tab="friends">Friends <span id="request-badge" class="badge" hidden></span></button>
+      <button class="tab" data-tab="rooms">Rooms</button>
+      <button class="tab" data-tab="inbox">Inbox <span id="inbox-badge" class="badge" hidden></span></button>
+    </nav>
+
+    <main class="content">
+      <!-- Friends -->
+      <section id="tab-friends" class="stack">
+        <form id="add-friend-form" class="row card">
+          <input name="username" placeholder="Add a friend by username" required>
+          <button class="primary">Add</button>
+        </form>
+        <div id="requests" class="stack"></div>
+        <h2>Friends</h2>
+        <ul id="friend-list" class="list"></ul>
+        <p id="no-friends" class="muted empty" hidden>No friends yet. Add someone by their username above.</p>
+      </section>
+
+      <!-- Rooms -->
+      <section id="tab-rooms" class="stack" hidden>
+        <button id="new-room-button" class="primary">+ New private room</button>
+        <ul id="room-list" class="list"></ul>
+        <p id="no-rooms" class="muted empty" hidden>No rooms yet. Make one for you and your friends.</p>
+
+        <div id="room-detail" class="card stack" hidden>
+          <div class="row spread">
+            <h2 id="room-title"></h2>
+            <button id="room-close" class="ghost" aria-label="Close room">✕</button>
+          </div>
+          <div id="room-members" class="chips"></div>
+          <div class="row">
+            <button id="room-nudge" class="primary">Nudge the room</button>
+            <select id="room-add-select"><option value="">Add a friend…</option></select>
+            <button id="room-leave" class="ghost danger">Leave</button>
+          </div>
+          <h3>Recent</h3>
+          <ul id="room-feed" class="feed"></ul>
+        </div>
+      </section>
+
+      <!-- Inbox -->
+      <section id="tab-inbox" class="stack" hidden>
+        <ul id="inbox-list" class="feed"></ul>
+        <p id="no-inbox" class="muted empty" hidden>No nudges yet.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Send a nudge -->
+  <dialog id="nudge-dialog">
+    <form method="dialog" id="nudge-form" class="stack">
+      <h2 id="nudge-title">Nudge</h2>
+      <p id="nudge-mood" class="mood-banner"></p>
+      <div>
+        <div class="muted small">Add up to 2 emojis</div>
+        <div id="emoji-picks" class="emoji-grid"></div>
+        <input id="emoji-custom" placeholder="…or type your own emoji" maxlength="16">
+      </div>
+      <label>Note <span class="muted small">(optional)</span>
+        <textarea id="nudge-note" maxlength="140" rows="2" placeholder="Thinking of you"></textarea>
+        <span id="note-count" class="muted small">0 / 140</span>
+      </label>
+      <p id="nudge-error" class="error" role="alert"></p>
+      <div class="row spread">
+        <button type="button" class="ghost" data-close>Cancel</button>
+        <button id="nudge-send" value="send" class="primary">Send nudge 👋</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Set your mood -->
+  <dialog id="mood-dialog">
+    <form method="dialog" id="mood-form" class="stack">
+      <h2>How are you feeling?</h2>
+      <div id="mood-presets" class="mood-grid"></div>
+      <h3>Custom mood</h3>
+      <div class="row">
+        <input id="mood-emoji" placeholder="🙂" maxlength="16" class="emoji-input" aria-label="Mood emoji">
+        <input id="mood-text" placeholder="e.g. Studying for finals" maxlength="30" aria-label="Mood text">
+      </div>
+      <p id="mood-error" class="error" role="alert"></p>
+      <div class="row spread">
+        <button id="mood-clear" type="button" class="ghost danger">Clear mood</button>
+        <span>
+          <button type="button" class="ghost" data-close>Cancel</button>
+          <button id="mood-save" value="save" class="primary">Save</button>
+        </span>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- New room -->
+  <dialog id="room-dialog">
+    <form method="dialog" id="room-form" class="stack">
+      <h2>New private room</h2>
+      <label>Name <input id="room-name" maxlength="40" required placeholder="Besties"></label>
+      <div class="muted small">Pick friends to invite</div>
+      <div id="room-friend-picks" class="stack"></div>
+      <p id="room-error" class="error" role="alert"></p>
+      <div class="row spread">
+        <button type="button" class="ghost" data-close>Cancel</button>
+        <button id="room-create" value="create" class="primary">Create</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <script src="lib/signalr.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

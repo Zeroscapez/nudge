@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="Nudge.Api.Tests/Nudge.Api.Tests.csproj" />
   <Project Path="Nudge.Api/Nudge.Api.csproj" />
 </Solution>
